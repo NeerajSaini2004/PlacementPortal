@@ -50,6 +50,43 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// Apply to company (Students only)
+router.post('/apply', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ msg: 'Only students can apply' });
+    }
+
+    const { companyId } = req.body;
+    const company = await Company.findById(companyId);
+    
+    if (!company) {
+      return res.status(404).json({ msg: 'Company not found' });
+    }
+
+    // Check if already applied
+    const existingApplication = await Application.findOne({
+      student: req.user.id,
+      job: companyId
+    });
+
+    if (existingApplication) {
+      return res.status(400).json({ msg: 'Already applied to this company' });
+    }
+
+    const application = new Application({
+      student: req.user.id,
+      job: companyId,
+      appliedAt: new Date()
+    });
+
+    await application.save();
+    res.json({ msg: 'Application submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ msg: 'Server error', error: error.message });
+  }
+});
+
 // Get company applicants (TPO/Admin only)
 router.get('/:id/applicants', auth, async (req, res) => {
   try {

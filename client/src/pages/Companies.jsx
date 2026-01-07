@@ -47,19 +47,31 @@ const Companies = () => {
   const filterCompanies = () => {
     let filtered = companies.filter(company => company.status === 'active');
     
+    // Apply eligibility filter for students
     if (user?.role === 'student' && user.studentProfile) {
       const { branch, cgpa } = user.studentProfile;
       
       filtered = filtered.filter(company => {
-        const branchEligible = company.eligibility.allowedBranches.includes('ALL') || 
+        // Check branch eligibility
+        const branchEligible = !company.eligibility?.allowedBranches?.length ||
+                              company.eligibility.allowedBranches.includes('ALL') || 
                               company.eligibility.allowedBranches.includes(branch);
-        const cgpaEligible = !company.eligibility.minCGPA || cgpa >= company.eligibility.minCGPA;
-        return branchEligible && cgpaEligible;
+        
+        // Check CGPA eligibility
+        const cgpaEligible = !company.eligibility?.minCGPA || 
+                            (cgpa && cgpa >= company.eligibility.minCGPA);
+        
+        // Check deadline
+        const deadlineValid = new Date() <= new Date(company.applicationDeadline);
+        
+        return branchEligible && cgpaEligible && deadlineValid;
       });
     }
     
+    // Apply manual filter
     if (filter.branch !== 'ALL') {
       filtered = filtered.filter(company => 
+        !company.eligibility?.allowedBranches?.length ||
         company.eligibility.allowedBranches.includes(filter.branch) ||
         company.eligibility.allowedBranches.includes('ALL')
       );
@@ -69,6 +81,37 @@ const Companies = () => {
   };
 
   const handleApply = async (companyId) => {
+    if (!user?.studentProfile?.isProfileComplete) {
+      alert('Please complete your profile before applying!');
+      return;
+    }
+    
+    // Check eligibility before applying
+    const company = companies.find(c => c._id === companyId);
+    if (company && user.studentProfile) {
+      const { branch, cgpa } = user.studentProfile;
+      
+      // Check branch eligibility
+      if (company.eligibility?.allowedBranches?.length && 
+          !company.eligibility.allowedBranches.includes('ALL') &&
+          !company.eligibility.allowedBranches.includes(branch)) {
+        alert(`This position is not open for ${branch} branch students.`);
+        return;
+      }
+      
+      // Check CGPA eligibility
+      if (company.eligibility?.minCGPA && cgpa < company.eligibility.minCGPA) {
+        alert(`Minimum CGPA required: ${company.eligibility.minCGPA}. Your CGPA: ${cgpa}`);
+        return;
+      }
+      
+      // Check deadline
+      if (new Date() > new Date(company.applicationDeadline)) {
+        alert('Application deadline has passed!');
+        return;
+      }
+    }
+    
     try {
       const token = localStorage.getItem('token');
       await axios.post(`http://localhost:5000/api/applications`, 
@@ -100,24 +143,34 @@ const Companies = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          MBM University - Placement Companies
-        </h1>
-        <p className="text-gray-600">Explore opportunities from visiting companies</p>
-      </div>
+    <div className="min-h-screen">
+      <div className="container mx-auto px-6 py-12">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full mb-6">
+            <span className="text-3xl text-white">🏢</span>
+          </div>
+          <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent mb-6">
+            Company Visits
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Discover top companies visiting MBM University campus for recruitment drives
+          </p>
+        </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-            <select
-              value={filter.branch}
-              onChange={(e) => setFilter({...filter, branch: e.target.value})}
-              className="border rounded-lg px-3 py-2"
-            >
+        {/* Filters */}
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/20 mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="text-2xl mr-2">🔍</span>
+            Filter Companies
+          </h3>
+          <div className="flex flex-wrap gap-4 items-center">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+              <select
+                value={filter.branch}
+                onChange={(e) => setFilter({...filter, branch: e.target.value})}
+                className="border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white/50"
+              >
               <option value="ALL">All Branches</option>
               <option value="CSE">Computer Science</option>
               <option value="IT">Information Technology</option>
@@ -128,16 +181,17 @@ const Companies = () => {
             </select>
           </div>
           
-          <div className="text-sm text-gray-600">
-            Showing {filteredCompanies.length} companies
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl px-4 py-3 flex items-center justify-center font-semibold">
+              <span className="text-lg mr-2">🏢</span>
+              {filteredCompanies.length} Companies
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Companies Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredCompanies.map((company) => (
-          <div key={company._id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div key={company._id} className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-xl font-bold text-gray-800">{company.name}</h3>
@@ -229,6 +283,7 @@ const Companies = () => {
           <p className="text-gray-500">Check back later for new opportunities</p>
         </div>
       )}
+      </div>
     </div>
   );
 };

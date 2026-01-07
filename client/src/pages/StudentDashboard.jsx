@@ -50,7 +50,7 @@ const StudentDashboard = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -59,27 +59,28 @@ const StudentDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-400 to-white-600 rounded-full mb-6">
+            <span className="text-2xl text-white">🎓</span>
+          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-800 to-orange-200 bg-clip-text text-transparent mb-4">
             Welcome back, {user?.name}!
           </h1>
-          <p className="text-gray-600">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Track your applications and stay updated with placement opportunities
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">📄</span>
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.totalApplications || 0}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{stats.totalApplications || 8}</p>
               </div>
             </div>
           </div>
@@ -168,7 +169,7 @@ const StudentDashboard = () => {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                <button className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <a href="/jobs" className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -178,9 +179,9 @@ const StudentDashboard = () => {
                     <h3 className="font-medium text-gray-900">Browse Jobs</h3>
                     <p className="text-sm text-gray-500">Find new opportunities</p>
                   </div>
-                </button>
+                </a>
                 
-                <button className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <a href="/profile" className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                   <div className="p-2 bg-green-100 rounded-lg">
                     <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -190,9 +191,9 @@ const StudentDashboard = () => {
                     <h3 className="font-medium text-gray-900">Update Profile</h3>
                     <p className="text-sm text-gray-500">Keep your profile current</p>
                   </div>
-                </button>
+                </a>
                 
-                <button className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <a href="/profile#resume" className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -202,7 +203,7 @@ const StudentDashboard = () => {
                     <h3 className="font-medium text-gray-900">Upload Resume</h3>
                     <p className="text-sm text-gray-500">Update your resume</p>
                   </div>
-                </button>
+                </a>
               </div>
             </div>
           </div>

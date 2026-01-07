@@ -185,13 +185,19 @@ router.get('/eligible-jobs', auth, async (req, res) => {
       status: 'active',
       isApproved: true,
       applicationDeadline: { $gte: new Date() },
-      $or: [
-        { 'eligibilityCriteria.allowedBranches': { $in: [branch, 'ALL'] } },
-        { 'eligibilityCriteria.allowedBranches': { $size: 0 } }
-      ],
-      $or: [
-        { 'eligibilityCriteria.minCGPA': { $lte: cgpa } },
-        { 'eligibilityCriteria.minCGPA': { $exists: false } }
+      $and: [
+        {
+          $or: [
+            { 'eligibilityCriteria.allowedBranches': { $in: [branch, 'ALL'] } },
+            { 'eligibilityCriteria.allowedBranches': { $size: 0 } }
+          ]
+        },
+        {
+          $or: [
+            { 'eligibilityCriteria.minCGPA': { $lte: cgpa } },
+            { 'eligibilityCriteria.minCGPA': { $exists: false } }
+          ]
+        }
       ]
     })
     .populate('company', 'name recruiterProfile.companyName recruiterProfile.companyLogo')
@@ -231,6 +237,73 @@ router.get('/stats', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Get student stats error:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// Get personalized recommendations
+router.get('/recommendations', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ msg: 'Access denied. Students only.' });
+    }
+
+    const student = await User.findById(req.user.id);
+    if (!student.studentProfile?.isProfileComplete) {
+      return res.json([]);
+    }
+
+    const { branch, cgpa, skills } = student.studentProfile;
+
+    // Find matching jobs based on student profile
+    const matchingJobs = await Job.find({
+      status: 'active',
+      isApproved: true,
+      applicationDeadline: { $gte: new Date() },
+      $and: [
+        {
+          $or: [
+            { 'eligibilityCriteria.allowedBranches': { $in: [branch, 'ALL'] } },
+            { 'eligibilityCriteria.allowedBranches': { $size: 0 } }
+          ]
+        },
+        {
+          $or: [
+            { 'eligibilityCriteria.minCGPA': { $lte: cgpa } },
+            { 'eligibilityCriteria.minCGPA': { $exists: false } }
+          ]
+        }
+      ]
+    })
+    .populate('company', 'name')
+    .limit(6);
+
+    // Calculate match percentage based on skills and requirements
+    const recommendations = matchingJobs.map(job => {
+      let matchPercentage = 70; // Base match
+      
+      if (job.requirements?.skills && skills) {
+        const matchingSkills = job.requirements.skills.filter(skill => 
+          skills.some(studentSkill => 
+            studentSkill.toLowerCase().includes(skill.toLowerCase()) ||
+            skill.toLowerCase().includes(studentSkill.toLowerCase())
+          )
+        );
+        matchPercentage += (matchingSkills.length / job.requirements.skills.length) * 30;
+      }
+      
+      return {
+        title: job.title,
+        company: job.company?.name || 'Company',
+        package: job.ctc?.total || 'Not specified',
+        matchPercentage: Math.min(Math.round(matchPercentage), 100),
+        jobId: job._id
+      };
+    });
+
+    res.json(recommendations);
+  } catch (error) {
+    console.error('Get recommendations error:', error);
     res.status(500).json({ msg: 'Server error' });
   }
 });

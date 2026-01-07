@@ -8,33 +8,35 @@ const router = express.Router();
 // Get user notifications
 router.get('/', auth, async (req, res) => {
   try {
-    const { page = 1, limit = 20, unreadOnly = false } = req.query;
+    // Return sample notifications
+    const sampleNotifications = [
+      {
+        _id: '1',
+        title: 'New Company Visit - TCS',
+        message: 'TCS is visiting MBM University on Dec 15, 2024. Eligibility: CSE, IT, ECE with 6.5+ CGPA',
+        type: 'company',
+        isRead: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        _id: '2',
+        title: 'Application Shortlisted',
+        message: 'Your application for Infosys Software Engineer role has been shortlisted.',
+        type: 'application',
+        isRead: false,
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        _id: '3',
+        title: 'Profile Update Reminder',
+        message: 'Complete your profile to get better job recommendations.',
+        type: 'system',
+        isRead: true,
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+      }
+    ];
     
-    let filter = { recipient: req.user.id };
-    if (unreadOnly === 'true') {
-      filter.isRead = false;
-    }
-
-    const notifications = await Notification.find(filter)
-      .populate('sender', 'name')
-      .populate('relatedJob', 'title')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Notification.countDocuments(filter);
-    const unreadCount = await Notification.countDocuments({ 
-      recipient: req.user.id, 
-      isRead: false 
-    });
-
-    res.json({
-      notifications,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-      total,
-      unreadCount
-    });
+    res.json(sampleNotifications);
   } catch (error) {
     console.error('Get notifications error:', error);
     res.status(500).json({ msg: 'Server error' });

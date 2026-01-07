@@ -34,12 +34,14 @@ const upload = multer({
   fileFilter
 });
 
-// Get all jobs with search and filters
+// Get all jobs with search and filters (PUBLIC - no auth required)
 router.get('/', async (req, res) => {
   try {
     const { search, location, jobType, page = 1, limit = 10 } = req.query;
     
-    let query = {};
+    let query = { status: 'active', isApproved: true };
+    console.log('Public Jobs API - Query:', query);
+    console.log('Public Jobs API - No auth required');
     
     if (search) {
       query.$or = [
@@ -58,9 +60,16 @@ router.get('/', async (req, res) => {
     
     const jobs = await Job.find(query)
       .populate('company', 'name')
+      .populate('postedBy', 'name')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
+    
+    console.log('Public Jobs API - Final query:', query);
+    console.log('Public Jobs API - Jobs found:', jobs.length);
+    jobs.forEach(job => {
+      console.log(`Public Job: ${job.title} | Status: ${job.status} | Approved: ${job.isApproved}`);
+    });
     
     const total = await Job.countDocuments(query);
     
@@ -88,14 +97,75 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create job (companies only)
-router.post('/', auth, async (req, res) => {
+// Get jobs by company (company users only)
+router.get('/my-jobs', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'company') {
-      return res.status(403).json({ msg: 'Only companies can post jobs' });
+    if (req.user.role !== 'company' && req.user.role !== 'recruiter') {
+      return res.status(403).json({ msg: 'Access denied' });
     }
     
-    const { title, description, location, salary, criteria, lastDate, jobType } = req.body;
+    const jobs = await Job.find({ 
+      $or: [
+        { company: req.user.id },
+        { postedBy: req.user.id }
+      ]
+    })
+    .populate('company', 'name')
+    .sort({ createdAt: -1 });
+    
+    res.json({ jobs });
+  } catch (error) {
+    console.error('Get my jobs error:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// Update job (admin and job owner only)
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ msg: 'Job not found' });
+    
+    // Check permissions
+    if (req.user.role !== 'admin' && job.postedBy.toString() !== req.user.id) {
+      return res.status(403).json({ msg: 'Access denied' });
+    }
+    
+    const { title, description, location, ctc, eligibilityCriteria, applicationDeadline, jobType } = req.body;
+    
+    const updatedJob = await Job.findByIdAndUpdate(
+      req.params.id,
+      {
+        title: title?.trim(),
+        description: description?.trim(),
+        location: location?.trim(),
+        ctc,
+        eligibilityCriteria,
+        applicationDeadline,
+        jobType
+      },
+      { new: true }
+    );
+    
+    res.json({ msg: 'Job updated successfully', job: updatedJob });
+  } catch (error) {
+    console.error('Update job error:', error);
+    res.status(500).json({ msg: 'Server error while updating job' });
+  }
+});
+
+// Create job (companies and admin only)
+router.post('/', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'company' && req.user.role !== 'admin' && req.user.role !== 'recruiter') {
+      return res.status(403).json({ msg: 'Only companies, recruiters and admin can post jobs' });
+    }
+    
+    console.log('User role posting job:', req.user.role);
+    
+    console.log('User posting job:', req.user.role, req.user.id);
+    
+    const { title, description, location, ctc, eligibilityCriteria, applicationDeadline, jobType } = req.body;
     
     // Input validation
     if (!title || !description || !location) {
@@ -106,15 +176,20 @@ router.post('/', auth, async (req, res) => {
       title: title.trim(),
       description: description.trim(),
       location: location.trim(),
-      salary,
-      criteria,
-      lastDate,
+      ctc,
+      eligibilityCriteria,
+      applicationDeadline,
       jobType: jobType || 'Full-time',
-      company: req.user.id
+      company: req.user.role === 'admin' ? null : req.user.id,
+      postedBy: req.user.id,
+      status: 'active',
+      isApproved: true,
+      status: 'active'
     });
     
     await job.save();
     await job.populate('company', 'name');
+    console.log('Job created:', job);
     res.status(201).json(job);
   } catch (error) {
     console.error('Create job error:', error);

@@ -2,6 +2,7 @@ import express from 'express';
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
 import Company from '../models/Company.js';
+import User from '../models/User.js';
 import auth from '../middleware/auth.js';
 
 const router = express.Router();
@@ -15,10 +16,38 @@ router.post('/', auth, async (req, res) => {
     
     const { job: companyId } = req.body;
     
+    // Get student profile
+    const student = await User.findById(req.user.id);
+    if (!student || !student.studentProfile?.isProfileComplete) {
+      return res.status(400).json({ msg: 'Please complete your profile before applying' });
+    }
+    
     // Check if company exists
     const company = await Company.findById(companyId);
     if (!company) {
       return res.status(404).json({ msg: 'Company not found' });
+    }
+    
+    // Check eligibility
+    const { branch, cgpa } = student.studentProfile;
+    
+    // Check branch eligibility
+    if (company.eligibility?.allowedBranches?.length && 
+        !company.eligibility.allowedBranches.includes('ALL') &&
+        !company.eligibility.allowedBranches.includes(branch)) {
+      return res.status(400).json({ msg: `This position is not open for ${branch} branch students` });
+    }
+    
+    // Check CGPA eligibility
+    if (company.eligibility?.minCGPA && cgpa < company.eligibility.minCGPA) {
+      return res.status(400).json({ 
+        msg: `Minimum CGPA required: ${company.eligibility.minCGPA}. Your CGPA: ${cgpa}` 
+      });
+    }
+    
+    // Check deadline
+    if (new Date() > new Date(company.applicationDeadline)) {
+      return res.status(400).json({ msg: 'Application deadline has passed' });
     }
     
     // Check if already applied

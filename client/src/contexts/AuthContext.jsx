@@ -60,7 +60,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Login attempt for email:', email);
       const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      console.log('Login response:', res.data);
       const { token, user } = res.data;
       
       localStorage.setItem('token', token);
@@ -73,6 +75,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error.response?.data);
       return { 
         success: false, 
         error: error.response?.data?.msg || 'Login failed' 
@@ -103,7 +106,8 @@ export const AuthProvider = ({ children }) => {
       ...state,
       login,
       register,
-      logout
+      logout,
+      refreshUser: fetchUser
     }}>
       {children}
     </AuthContext.Provider>

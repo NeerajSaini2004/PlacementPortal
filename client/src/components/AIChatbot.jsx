@@ -104,7 +104,7 @@ const AIChatbot = ({ isOpen, onClose }) => {
   return (
     <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 z-50 flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-2xl flex justify-between items-center">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-2xl flex justify-between items-center">
         <div className="flex items-center">
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
             <span className="text-xl">🤖</span>
@@ -132,7 +132,7 @@ const AIChatbot = ({ isOpen, onClose }) => {
             <div
               className={`max-w-[80%] p-3 rounded-2xl shadow-md ${
                 message.role === 'user'
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
                   : 'bg-white/80 backdrop-blur-sm text-gray-800 border border-gray-200'
               }`}
             >
@@ -190,7 +190,7 @@ const AIChatbot = ({ isOpen, onClose }) => {
           <button
             onClick={sendMessage}
             disabled={!inputMessage.trim() || isTyping}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 transition-all duration-200 font-semibold shadow-lg"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 transition-all duration-200 font-semibold shadow-lg"
           >
             🚀 Send
           </button>

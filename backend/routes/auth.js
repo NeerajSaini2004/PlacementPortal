@@ -20,13 +20,16 @@ const validatePassword = (password) => {
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+    console.log('Registration attempt:', { name, email, role });
     
     // Input validation
     if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
+      console.log('Invalid input format');
       return res.status(400).json({ msg: 'Invalid input format' });
     }
     
     if (!name.trim() || !validateEmail(email) || !validatePassword(password)) {
+      console.log('Validation failed:', { name: !!name.trim(), email: validateEmail(email), password: validatePassword(password) });
       return res.status(400).json({ msg: 'Please provide valid name, email and password (min 6 chars)' });
     }
     
@@ -97,6 +100,24 @@ router.get('/me', auth, async (req, res) => {
     res.json({ user });
   } catch (error) {
     console.error('Get user error:', error);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// Get all students (Admin only)
+router.get('/students', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ msg: 'Access denied. Admin only.' });
+    }
+    
+    const students = await User.find({ role: 'student' })
+      .select('-password')
+      .sort({ createdAt: -1 });
+    
+    res.json(students);
+  } catch (error) {
+    console.error('Get students error:', error);
     res.status(500).json({ msg: 'Server error' });
   }
 });

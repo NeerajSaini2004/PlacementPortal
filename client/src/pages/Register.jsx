@@ -55,7 +55,7 @@ export default function Register() {
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Join the placement portal
+          Student Registration - MBM University
         </p>
       </div>
 
@@ -118,29 +118,7 @@ export default function Register() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Register as
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="student">Student</option>
-                <option value="recruiter">Company/Recruiter</option>
-                <option value="admin">Admin (TPO)</option>
-              </select>
-              <p className="mt-1 text-xs text-gray-500">
-                {formData.role === 'student' 
-                  ? 'Students can apply for jobs and track applications'
-                  : formData.role === 'recruiter'
-                  ? 'Companies can post jobs and manage applications'
-                  : 'Admins can manage the entire placement system'
-                }
-              </p>
-            </div>
+
 
             <div>
               <button

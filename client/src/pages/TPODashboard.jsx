@@ -6,6 +6,7 @@ const TPODashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('companies');
   const [companies, setCompanies] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [students, setStudents] = useState([]);
   const [applications, setApplications] = useState([]);
   const [stats, setStats] = useState({});
@@ -42,8 +43,16 @@ const TPODashboard = () => {
       if (activeTab === 'companies') {
         const res = await axios.get('http://localhost:5000/api/companies');
         setCompanies(res.data);
+      } else if (activeTab === 'jobs') {
+        const res = await axios.get('http://localhost:5000/api/jobs', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log('Jobs API response:', res.data);
+        const jobsData = Array.isArray(res.data) ? res.data : res.data.jobs || [];
+        console.log('Setting jobs:', jobsData);
+        setJobs(jobsData);
       } else if (activeTab === 'students') {
-        const res = await axios.get('http://localhost:5000/api/students', {
+        const res = await axios.get('http://localhost:5000/api/auth/students', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStudents(res.data);
@@ -252,7 +261,7 @@ const TPODashboard = () => {
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
-        {['companies', 'students', 'applications', 'statistics'].map((tab) => (
+        {['companies', 'jobs', 'students', 'applications', 'statistics'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -311,6 +320,70 @@ const TPODashboard = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Jobs Tab */}
+      {activeTab === 'jobs' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Posted Jobs</h2>
+            <a
+              href="/post-job"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Post New Job
+            </a>
+          </div>
+          
+          {loading ? (
+            <div className="text-center py-8">Loading jobs...</div>
+          ) : jobs.length > 0 ? (
+            <div className="grid gap-4">
+              {jobs.map((job) => (
+                <div key={job._id} className="bg-white p-4 rounded-lg shadow border">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{job.title}</h3>
+                      <p className="text-gray-600">{job.company?.name || 'Direct Hire'}</p>
+                      <p className="text-green-600 font-medium">₹{job.ctc?.total || 'N/A'} LPA</p>
+                      <p className="text-sm text-gray-500">{job.location}</p>
+                      <div className="mt-2">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {job.jobType}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end space-y-2">
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        job.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {job.status}
+                      </span>
+                      <a
+                        href={`/edit-job/${job._id}`}
+                        className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
+                      >
+                        Edit
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg">
+              <div className="text-gray-400 text-6xl mb-4">📋</div>
+              <h3 className="text-xl font-medium text-gray-600 mb-2">No jobs posted yet</h3>
+              <p className="text-gray-500 mb-4">Start by posting your first job opening</p>
+              <a
+                href="/post-job"
+                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Post First Job
+              </a>
+            </div>
+          )}
         </div>
       )}
 

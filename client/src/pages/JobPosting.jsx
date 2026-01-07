@@ -139,7 +139,10 @@ const JobPosting = () => {
         }
       };
 
-      await axios.post('http://localhost:5000/api/recruiters/jobs', finalJobData);
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/jobs', finalJobData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setMessage('✅ Job posted successfully!');
       
       // Reset form

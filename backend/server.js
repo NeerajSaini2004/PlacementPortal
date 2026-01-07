@@ -14,6 +14,7 @@ import recruiterRoutes from './routes/recruiters.js';
 import adminRoutes from './routes/admin.js';
 import notificationRoutes from './routes/notifications.js';
 import companyRoutes from './routes/companies.js';
+import aiRoutes from './routes/ai.js';
 
 dotenv.config();
 
@@ -61,6 +62,7 @@ app.use('/api/recruiters', recruiterRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/companies', companyRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

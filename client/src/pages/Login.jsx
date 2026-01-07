@@ -62,7 +62,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-700 rounded-md focus:outline-none focus:ring-blue-100 focus:border-blue-500"
                 placeholder="Enter your email"
                 required
               />
@@ -106,13 +106,7 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">Demo Accounts:</h3>
-            <div className="text-xs text-blue-700 space-y-1">
-              <p><strong>Admin:</strong> tpo@mbm.ac.in / admin123</p>
-              <p><strong>Student:</strong> Register as student</p>
-            </div>
-          </div>
+
         </form>
       </div>
     </div>

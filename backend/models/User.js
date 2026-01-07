@@ -90,7 +90,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Indexes
-// userSchema.index({ email: 1 });
+userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ 'recruiterProfile.isApproved': 1 });
 userSchema.index({ 'studentProfile.branch': 1 });

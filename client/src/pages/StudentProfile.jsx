@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import AIResumeAnalyzer from '../components/AIResumeAnalyzer';
 import axios from 'axios';
+import FileUpload from '../components/FileUpload';
 
 const StudentProfile = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [profile, setProfile] = useState({
     name: '',
     studentProfile: {
@@ -68,12 +70,13 @@ const StudentProfile = () => {
   };
 
   const addSkill = () => {
-    if (newSkill.trim() && !profile.studentProfile.skills.includes(newSkill.trim())) {
+    const sanitizedSkill = newSkill.trim().replace(/[<>"'&]/g, '');
+    if (sanitizedSkill && !profile.studentProfile.skills.includes(sanitizedSkill)) {
       setProfile(prev => ({
         ...prev,
         studentProfile: {
           ...prev.studentProfile,
-          skills: [...prev.studentProfile.skills, newSkill.trim()]
+          skills: [...prev.studentProfile.skills, sanitizedSkill]
         }
       }));
       setNewSkill('');
@@ -95,11 +98,39 @@ const StudentProfile = () => {
     setLoading(true);
     setMessage('');
 
+    // Check if profile is complete
+    const isComplete = profile.name && 
+                      profile.studentProfile.rollNumber && 
+                      profile.studentProfile.branch && 
+                      profile.studentProfile.year && 
+                      profile.studentProfile.cgpa && 
+                      profile.studentProfile.phone;
+
+    const updatedProfile = {
+      ...profile,
+      studentProfile: {
+        ...profile.studentProfile,
+        college: 'MBM University',
+        isProfileComplete: isComplete
+      }
+    };
+
     try {
-      await axios.put('http://localhost:5000/api/students/profile', profile);
+      const token = localStorage.getItem('token');
+      await axios.put('http://localhost:5000/api/students/profile', updatedProfile, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Refresh user data in AuthContext
+      await refreshUser();
+      
       setMessage('✅ Profile updated successfully!');
+      
+      if (isComplete) {
+        setMessage('✅ Profile completed! You can now apply for companies.');
+      }
     } catch (error) {
-      setMessage('❌ Failed to update profile');
+      setMessage('❌ Failed to update profile: ' + (error.response?.data?.msg || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -109,16 +140,39 @@ const StudentProfile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (file.type !== 'application/pdf') {
+      setMessage('❌ Please upload only PDF files');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('❌ File size should be less than 5MB');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('resume', file);
 
     try {
-      await axios.post('http://localhost:5000/api/students/upload-resume', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const token = localStorage.getItem('token');
+      const res = await axios.post('http://localhost:5000/api/students/upload-resume', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
       });
       setMessage('✅ Resume uploaded successfully!');
+      
+      // Update profile with resume path
+      setProfile(prev => ({
+        ...prev,
+        studentProfile: {
+          ...prev.studentProfile,
+          resume: res.data.resumePath
+        }
+      }));
     } catch (error) {
-      setMessage('❌ Failed to upload resume');
+      setMessage('❌ Failed to upload resume: ' + (error.response?.data?.msg || 'Unknown error'));
     }
   };
 
@@ -310,14 +364,33 @@ const StudentProfile = () => {
             {/* Resume Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Resume (PDF only)
+                Resume Upload
               </label>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleResumeUpload}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <FileUpload 
+                onUploadSuccess={(data) => {
+                  setMessage('✅ Resume uploaded successfully!');
+                  setProfile(prev => ({
+                    ...prev,
+                    studentProfile: {
+                      ...prev.studentProfile,
+                      resume: data.resumePath
+                    }
+                  }));
+                }}
               />
+              {profile.studentProfile.resume && (
+                <div className="mt-2 p-2 bg-green-50 rounded border">
+                  <p className="text-sm text-green-700">✅ Resume uploaded</p>
+                  <a 
+                    href={`http://localhost:5000${profile.studentProfile.resume}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    View Resume
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Social Links */}
@@ -365,6 +438,14 @@ const StudentProfile = () => {
               </button>
             </div>
           </form>
+        </div>
+        
+        {/* AI Resume Analyzer */}
+        <div className="mt-8">
+          <AIResumeAnalyzer onAnalysisComplete={(analysis) => {
+            console.log('Resume analysis completed:', analysis);
+            // You can update profile with extracted data here
+          }} />
         </div>
       </div>
     </div>
