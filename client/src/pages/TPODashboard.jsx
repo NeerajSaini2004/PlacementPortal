@@ -41,10 +41,10 @@ const TPODashboard = () => {
       const token = localStorage.getItem('token');
       
       if (activeTab === 'companies') {
-        const res = await axios.get('http://localhost:5000/api/companies');
+        const res = await axios.get('https://placementportal-backend-k631.onrender.com/api/companies');
         setCompanies(res.data);
       } else if (activeTab === 'jobs') {
-        const res = await axios.get('http://localhost:5000/api/jobs', {
+        const res = await axios.get('https://placementportal-backend-k631.onrender.com/api/jobs', {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Jobs API response:', res.data);
@@ -52,12 +52,12 @@ const TPODashboard = () => {
         console.log('Setting jobs:', jobsData);
         setJobs(jobsData);
       } else if (activeTab === 'students') {
-        const res = await axios.get('http://localhost:5000/api/auth/students', {
+        const res = await axios.get('https://placementportal-backend-k631.onrender.com/api/auth/students', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStudents(res.data);
       } else if (activeTab === 'applications') {
-        const res = await axios.get('http://localhost:5000/api/applications', {
+        const res = await axios.get('https://placementportal-backend-k631.onrender.com/api/applications', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setApplications(res.data);
@@ -73,7 +73,7 @@ const TPODashboard = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/companies', companyForm, {
+      await axios.post('https://placementportal-backend-k631.onrender.com/api/companies', companyForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -105,7 +105,7 @@ const TPODashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.patch(
-        `http://localhost:5000/api/applications/${applicationId}`,
+        `https://placementportal-backend-k631.onrender.com/api/applications/${applicationId}`,
         { status, rejectionReason: reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
