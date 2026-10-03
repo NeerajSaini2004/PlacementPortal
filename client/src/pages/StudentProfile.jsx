@@ -117,7 +117,7 @@ const StudentProfile = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:5000/api/students/profile', updatedProfile, {
+      await axios.put('https://placementportal-backend-k631.onrender.com/api/students/profile', updatedProfile, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
