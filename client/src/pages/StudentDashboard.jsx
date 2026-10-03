@@ -16,9 +16,9 @@ const StudentDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [statsRes, applicationsRes, notificationsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/students/stats'),
-        axios.get('http://localhost:5000/api/students/applications'),
-        axios.get('http://localhost:5000/api/notifications?limit=5')
+        axios.get('https://placementportal-backend-k631.onrender.com/api/students/stats'),
+        axios.get('https://placementportal-backend-k631.onrender.com/api/students/applications'),
+        axios.get('https://placementportal-backend-k631.onrender.com/api/notifications?limit=5')
       ]);
 
       setStats(statsRes.data);
