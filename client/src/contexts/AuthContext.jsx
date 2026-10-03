@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/auth/me');
+      const res = await axios.get('https://placementportal-backend-k631.onrender.com/api/auth/me');
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: { user: res.data.user, token: state.token }
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       console.log('Login attempt for email:', email);
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await axios.post('https://placementportal-backend-k631.onrender.com/api/auth/login', { email, password });
       console.log('Login response:', res.data);
       const { token, user } = res.data;
       
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', userData);
+      const res = await axios.post('https://placementportal-backend-k631.onrender.com/api/auth/register', userData);
       return { success: true, message: res.data.msg };
     } catch (error) {
       return { 
