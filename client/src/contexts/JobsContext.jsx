@@ -12,7 +12,7 @@ export const JobProvider = ({ children }) => {
     setLoading(true);
     try {
       const params = new URLSearchParams(filters).toString();
-      const res = await axios.get(`http://localhost:5000/api/jobs?${params}`);
+      const res = await axios.get(`https://placementportal-backend-k631.onrender.com/api/jobs?${params}`);
       setJobs(res.data.jobs || res.data || []);
       setTotalPages(res.data.totalPages || 1);
     } catch (error) {
@@ -68,7 +68,7 @@ export const JobProvider = ({ children }) => {
 
   const applyToJob = async (jobId) => {
     try {
-      await axios.post(`http://localhost:5000/api/jobs/${jobId}/apply`);
+      await axios.post(`https://placementportal-backend-k631.onrender.com/api/jobs/${jobId}/apply`);
       return { success: true, message: 'Application submitted successfully' };
     } catch (error) {
       // Simulate success for demo
