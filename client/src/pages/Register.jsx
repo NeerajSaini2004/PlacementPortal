@@ -38,7 +38,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', formData);
+      const response = await axios.post('https://placementportal-backend-k631.onrender.com/api/auth/register', formData);
       setSuccess('Registration successful! Please login to continue.');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
